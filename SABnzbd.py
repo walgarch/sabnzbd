@@ -17,18 +17,8 @@
 
 import sys
 import imp
-if sys.version_info[:2] < (2, 7) or sys.version_info[:2] >= (3, 0):
-    print("Sorry, requires Python 2.7.")
-    sys.exit(1)
-
-# Make sure UTF-8 is default 8bit encoding
-if not hasattr(sys, "setdefaultencoding"):
-    imp.reload(sys)
-try:
-    sys.setdefaultencoding('utf-8')
-except:
-    print('Sorry, you MUST add the SABnzbd folder to the PYTHONPATH environment variable')
-    print('or find another way to force Python to use UTF-8 for text encoding.')
+if sys.version_info[:2] < (3, 0):
+    print("Sorry, requires Python 3")
     sys.exit(1)
 
 import logging
@@ -43,10 +33,10 @@ import re
 
 try:
     import Cheetah
-    if Cheetah.Version[0] != '2':
+    if Cheetah.Version[0] != '3':
         raise ValueError
 except ValueError:
-    print("Sorry, requires Python module Cheetah 2.0rc7 or higher.")
+    print("Sorry, requires Python module Cheetah 3 or higher.")
     sys.exit(1)
 except:
     print("The Python module Cheetah is required")
