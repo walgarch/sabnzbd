@@ -27,7 +27,7 @@ from nntplib import NNTPPermanentError
 import socket
 import random
 import sys
-import Queue
+import queue
 
 import sabnzbd
 from sabnzbd.decorators import synchronized, synchronized_CV, CV
@@ -198,7 +198,7 @@ class Downloader(Thread):
         for server in config.get_servers():
             self.init_server(None, server)
 
-        self.decoder_queue = Queue.Queue()
+        self.decoder_queue = queue.Queue()
 
         # Initialize decoders, only 1 for non-SABYenc
         self.decoder_workers = []
@@ -237,7 +237,7 @@ class Downloader(Thread):
             create = True
 
         if oldserver:
-            for n in xrange(len(self.servers)):
+            for n in range(len(self.servers)):
                 if self.servers[n].id == oldserver:
                     # Server exists, do re-init later
                     create = False
@@ -363,7 +363,7 @@ class Downloader(Thread):
         return True
 
     def nzo_servers(self, nzo):
-        return filter(nzo.server_in_try_list, self.servers)
+        return list(filter(nzo.server_in_try_list, self.servers))
 
     def maybe_block_server(self, server):
         if server.optional and server.active and (server.bad_cons / server.threads) > 3:
@@ -419,7 +419,7 @@ class Downloader(Thread):
         # Kick BPS-Meter to check quota
         BPSMeter.do.update()
 
-        while 1:
+        while True:
             for server in self.servers:
                 if 0: assert isinstance(server, Server) # Assert only for debug purposes
                 for nw in server.busy_threads[:]:
@@ -523,8 +523,8 @@ class Downloader(Thread):
                 self.force_disconnect = False
 
             # => Select
-            readkeys = self.read_fds.keys()
-            writekeys = self.write_fds.keys()
+            readkeys = list(self.read_fds.keys())
+            writekeys = list(self.write_fds.keys())
 
             if readkeys or writekeys:
                 read, write, error = select.select(readkeys, writekeys, (), 1.0)
@@ -620,7 +620,7 @@ class Downloader(Thread):
                             if sabnzbd.LOG_ALL:
                                 logging.debug("%s@%s last message -> %s", nw.thrdnum, nw.server.id, nntp_to_msg(nw.data))
                             nw.clear_data()
-                        except NNTPPermanentError, error:
+                        except NNTPPermanentError as error:
                             # Handle login problems
                             block = False
                             penalty = 0
@@ -827,7 +827,7 @@ class Downloader(Thread):
             fileno = nw.nntp.sock.fileno()
             if fileno not in self.read_fds:
                 self.read_fds[fileno] = nw
-        except socket.error, err:
+        except socket.error as err:
             logging.info('Looks like server closed connection: %s', err)
             self.__reset_nw(nw, "server broke off connection", quit=False)
         except:
@@ -882,7 +882,7 @@ class Downloader(Thread):
                 break
 
     def unblock_all(self):
-        for server_id in self._timers.keys():
+        for server_id in list(self._timers.keys()):
             self.unblock(server_id)
 
     @synchronized_CV
@@ -892,7 +892,7 @@ class Downloader(Thread):
         # Clean expired timers
         now = time.time()
         kicked = []
-        for server_id in self._timers.keys():
+        for server_id in list(self._timers.keys()):
             if not [stamp for stamp in self._timers[server_id] if stamp >= now]:
                 logging.debug('Forcing re-evaluation of server %s', server_id)
                 del self._timers[server_id]

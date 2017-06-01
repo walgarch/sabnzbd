@@ -24,7 +24,7 @@ import time
 import datetime
 import cherrypy
 import logging
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import json
 import re
 import hashlib
@@ -127,7 +127,7 @@ def Raiser(root='', **kwargs):
             args[key] = val
     # Add extras
     if args:
-        root = '%s?%s' % (root, urllib.urlencode(args))
+        root = '%s?%s' % (root, urllib.parse.urlencode(args))
     # Optionally add the leading /sabnzbd/
     if not root.startswith('/sabnzbd'):
         root = cherrypy.request.script_name + root
@@ -172,7 +172,7 @@ def encrypt_pwd(pwd):
 
 
 # Create a more unique ID for each instance
-COOKIE_SECRET = str(randint(1000,100000)*os.getpid())
+COOKIE_SECRET = str(randint(1000, 100000)*os.getpid())
 
 def set_login_cookie(remove=False, remember_me=False):
     """ We try to set a cookie as unique as possible
@@ -180,7 +180,7 @@ def set_login_cookie(remove=False, remember_me=False):
         current process ID of the SAB instance and a random
         number, so cookies cannot be re-used
     """
-    salt = randint(1,1000)
+    salt = randint(1, 1000)
     cherrypy.response.cookie['login_cookie'] = hashlib.sha1(str(salt) + cherrypy.request.remote.ip + COOKIE_SECRET).hexdigest()
     cherrypy.response.cookie['login_cookie']['path'] = '/'
     cherrypy.response.cookie['login_salt'] = salt
@@ -238,7 +238,7 @@ def set_auth(conf):
 def check_session(kwargs):
     """ Check session key """
     if not check_access():
-        return u'Access denied'
+        return 'Access denied'
     key = kwargs.get('session')
     if not key:
         key = kwargs.get('apikey')
@@ -1465,7 +1465,7 @@ SPECIAL_BOOL_LIST = \
               'allow_streaming', 'ignore_unrar_dates', 'par2_multicore',
               'osx_menu', 'osx_speed', 'win_menu', 'use_pickle', 'allow_incomplete_nzb',
               'rss_filenames', 'ipv6_hosting', 'keep_awake', 'empty_postproc', 'html_login',
-              'wait_for_dfolder', 'warn_empty_nzb', 'enable_bonjour','allow_duplicate_files',
+              'wait_for_dfolder', 'warn_empty_nzb', 'enable_bonjour', 'allow_duplicate_files',
               'warn_dupl_jobs', 'backup_for_duplicates', 'enable_par_cleanup', 'disable_api_key',
               'api_logging', 'enable_meta'
      )
@@ -1720,7 +1720,7 @@ class ConfigServer(object):
 
         new = []
         servers = config.get_servers()
-        server_names = sorted(servers.keys(), key=lambda svr: '%d%02d%s' % (int(not servers[svr].enable()), servers[svr].priority(), servers[svr].displayname().lower()))
+        server_names = sorted(list(servers.keys()), key=lambda svr: '%d%02d%s' % (int(not servers[svr].enable()), servers[svr].priority(), servers[svr].displayname().lower()))
         for svr in server_names:
             new.append(servers[svr].get_dict(safe=True))
             t, m, w, d = BPSMeter.do.amounts(svr)
@@ -1839,7 +1839,7 @@ def handle_server(kwargs, root=None, new_svr=False):
         server = unique_svr_name(server)
 
     for kw in ('ssl', 'send_group', 'enable', 'optional'):
-        if kw not in kwargs.keys():
+        if kw not in list(kwargs.keys()):
             kwargs[kw] = None
     if svr and not new_svr:
         svr.set_dict(kwargs)
@@ -1902,7 +1902,7 @@ class ConfigRss(object):
 
             rss[feed]['pick_cat'] = pick_cat
             rss[feed]['pick_script'] = pick_script
-            rss[feed]['link'] = urllib.quote_plus(feed.encode('utf-8'))
+            rss[feed]['link'] = urllib.parse.quote_plus(feed.encode('utf-8'))
             rss[feed]['baselink'] = [get_base_url(uri) for uri in rss[feed]['uri']]
             rss[feed]['uris'] = feeds[feed].uri.get_string()
 
@@ -2792,7 +2792,7 @@ def GetRssLog(feed):
 
         return job
 
-    jobs = sabnzbd.rss.show_result(feed).values()
+    jobs = list(sabnzbd.rss.show_result(feed).values())
     good, bad, done = ([], [], [])
     for job in jobs:
         if job['status'][0] == 'G':

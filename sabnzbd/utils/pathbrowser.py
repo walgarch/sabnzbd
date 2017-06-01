@@ -98,15 +98,15 @@ def folders_at_path(path, include_parent = False, show_hidden = False):
                 doit = False
             if doit:
                 file_list.append({ 'name': unicoder(filename), 'path': unicoder(fpath) })
-        file_list = filter(lambda entry: os.path.isdir(entry['path']), file_list)
-        file_list = filter(lambda entry: entry['name'].lower() not in _JUNKFOLDERS, file_list)
+        file_list = [entry for entry in file_list if os.path.isdir(entry['path'])]
+        file_list = [entry for entry in file_list if entry['name'].lower() not in _JUNKFOLDERS]
         file_list = sorted(file_list, lambda x, y: cmp(os.path.basename(x['name']).lower(), os.path.basename(y['path']).lower()))
     except:
         # No access, ignore
         pass
     file_list.insert(0, {'current_path': path})
     if include_parent and parent_path != path:
-        file_list.insert(1,{ 'name': "..", 'path': parent_path })
+        file_list.insert(1, { 'name': "..", 'path': parent_path })
 
     return file_list
 

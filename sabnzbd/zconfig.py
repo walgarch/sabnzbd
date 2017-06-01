@@ -107,7 +107,7 @@ def set_bonjour(host=None, port=None):
 
 
 def _bonjour_server(refObject):
-    while 1:
+    while True:
         pybonjour.DNSServiceProcessResult(refObject)
         logging.debug('GOT A BONJOUR CALL')
 

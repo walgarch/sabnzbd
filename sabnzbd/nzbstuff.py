@@ -31,9 +31,9 @@ import xml.sax.xmlreader
 import hashlib
 
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from io import StringIO
 
 # SABnzbd modules
 import sabnzbd
@@ -446,7 +446,7 @@ class NzbParser(xml.sax.handler.ContentHandler):
 
             # Check if file was added with same name
             if not cfg.allow_duplicate_files():
-                nzo_matches = filter(lambda x: (x.filename == nzf.filename), self.nzo.files)
+                nzo_matches = [x for x in self.nzo.files if (x.filename == nzf.filename)]
                 if nzo_matches:
                     logging.info('File %s occured twice in NZB, discarding smaller file', nzf.filename)
                     # Which is smaller? Current or old one
@@ -700,14 +700,14 @@ class NzbObject(TryList):
             inpsrc.setByteStream(StringIO(nzb))
             try:
                 parser.parse(inpsrc)
-            except xml.sax.SAXParseException, err:
+            except xml.sax.SAXParseException as err:
                 self.incomplete = True
                 if '</nzb>' not in nzb:
                     logging.warning(T('Incomplete NZB file %s'), filename)
                 else:
                     logging.warning(T('Invalid NZB file %s, skipping (reason=%s, line=%s)'),
                                     filename, err.getMessage(), err.getLineNumber())
-            except Exception, err:
+            except Exception as err:
                 self.incomplete = True
                 logging.warning(T('Invalid NZB file %s, skipping (reason=%s, line=%s)'), filename, err, 0)
 
@@ -1134,7 +1134,7 @@ class NzbObject(TryList):
             return self.final_name
 
     def set_final_name_pw(self, name, password=None):
-        if isinstance(name, basestring):
+        if isinstance(name, str):
             if password is not None:
                 name = platform_encode(name)
                 self.password = platform_encode(password)
@@ -1212,7 +1212,7 @@ class NzbObject(TryList):
         # Need more?
         if not nzf.is_par2 and blocks_already < total_need:
             # We have to find the right par-set
-            for parset in self.extrapars.keys():
+            for parset in list(self.extrapars.keys()):
                 if parset in nzf.filename and self.extrapars[parset]:
                     extrapars_sorted = sorted(self.extrapars[parset], key=lambda x: x.blocks, reverse=True)
                     # Loop untill we have enough
@@ -1230,9 +1230,9 @@ class NzbObject(TryList):
         """ Determine amount of articles present on servers
             and return (gross available, nett) bytes
         """
-        need = 0L
-        pars = 0L
-        short = 0L
+        need = 0
+        pars = 0
+        short = 0
         anypars = False
         for nzf_id in self.files_table:
             nzf = self.files_table[nzf_id]
@@ -1270,7 +1270,7 @@ class NzbObject(TryList):
             complete_time = format_time_string(seconds, timecompleted.days)
 
             msg1 = T('Downloaded in %s at an average of %sB/s') % (complete_time, to_units(avg_bps * 1024, dec_limit=1))
-            msg1 += u'<br/>' + T('Age') + ': ' + calc_age(self.avg_date, True)
+            msg1 += '<br/>' + T('Age') + ': ' + calc_age(self.avg_date, True)
 
             bad = self.nzo_info.get('bad_art_log', [])
             miss = self.nzo_info.get('missing_art_log', [])
@@ -1278,14 +1278,14 @@ class NzbObject(TryList):
             dups = self.nzo_info.get('dup_art_log', [])
             msg2 = msg3 = msg4 = msg5 = ''
             if bad:
-                msg2 = (u'<br/>' + T('%s articles were malformed')) % len(bad)
+                msg2 = ('<br/>' + T('%s articles were malformed')) % len(bad)
             if miss:
-                msg3 = (u'<br/>' + T('%s articles were missing')) % len(miss)
+                msg3 = ('<br/>' + T('%s articles were missing')) % len(miss)
             if dups:
-                msg4 = (u'<br/>' + T('%s articles had non-matching duplicates')) % len(dups)
+                msg4 = ('<br/>' + T('%s articles had non-matching duplicates')) % len(dups)
             if killed:
-                msg5 = (u'<br/>' + T('%s articles were removed')) % len(killed)
-            msg = u''.join((msg1, msg2, msg3, msg4, msg5, ))
+                msg5 = ('<br/>' + T('%s articles were removed')) % len(killed)
+            msg = ''.join((msg1, msg2, msg3, msg4, msg5, ))
             self.set_unpack_info('Download', msg, unique=True)
             if self.url:
                 self.set_unpack_info('Source', self.url, unique=True)
@@ -1358,15 +1358,14 @@ class NzbObject(TryList):
     def move_top_bulk(self, nzf_ids):
         self.cleanup_nzf_ids(nzf_ids)
         if nzf_ids:
-            target = range(len(nzf_ids))
+            target = list(range(len(nzf_ids)))
 
-            while 1:
+            while True:
                 self.move_up_bulk(nzf_ids, cleanup=False)
 
                 pos_nzf_table = self.build_pos_nzf_table(nzf_ids)
 
-                keys = pos_nzf_table.keys()
-                keys.sort()
+                keys = sorted(list(pos_nzf_table.keys()))
 
                 if target == keys:
                     break
@@ -1375,15 +1374,14 @@ class NzbObject(TryList):
     def move_bottom_bulk(self, nzf_ids):
         self.cleanup_nzf_ids(nzf_ids)
         if nzf_ids:
-            target = range(len(self.files) - len(nzf_ids), len(self.files))
+            target = list(range(len(self.files) - len(nzf_ids), len(self.files)))
 
-            while 1:
+            while True:
                 self.move_down_bulk(nzf_ids, cleanup=False)
 
                 pos_nzf_table = self.build_pos_nzf_table(nzf_ids)
 
-                keys = pos_nzf_table.keys()
-                keys.sort()
+                keys = sorted(list(pos_nzf_table.keys()))
 
                 if target == keys:
                     break
@@ -1801,9 +1799,9 @@ def get_attrib_file(path, size):
     try:
         f = open(path, 'r')
     except:
-        return [None for unused in xrange(size)]
+        return [None for unused in range(size)]
 
-    for unused in xrange(size):
+    for unused in range(size):
         line = f.readline().strip('\r\n ')
         if line:
             if line.lower() == 'none':

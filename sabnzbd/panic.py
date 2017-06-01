@@ -194,7 +194,7 @@ def panic_fwall(vista):
 
 
 def panic_port(host, port):
-    print "\n%s:\n  %s" % (T('Fatal error'), T('Unable to bind to port %s on %s. Some other software uses the port or SABnzbd is already running.') % (port, host))
+    print("\n%s:\n  %s" % (T('Fatal error'), T('Unable to bind to port %s on %s. Some other software uses the port or SABnzbd is already running.') % (port, host)))
     launch_a_browser(panic_message(PANIC_PORT, host, port))
 
 
@@ -220,7 +220,7 @@ def panic_old_queue():
 
 
 def panic(reason, remedy=""):
-    print "\n%s:\n  %s\n%s" % (T('Fatal error'), reason, remedy)
+    print("\n%s:\n  %s\n%s" % (T('Fatal error'), reason, remedy))
     launch_a_browser(panic_message(PANIC_OTHER, reason, remedy))
 
 

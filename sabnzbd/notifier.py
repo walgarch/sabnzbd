@@ -20,13 +20,13 @@
 sabnzbd.notifier - Send notifications to any notification services
 """
 
-from __future__ import with_statement
+
 import os.path
 import logging
 import socket
-import urllib2
-import httplib
-import urllib
+import urllib.request, urllib.error, urllib.parse
+import http.client
+import urllib.request, urllib.parse, urllib.error
 import time
 import subprocess
 import json
@@ -216,7 +216,7 @@ def register_growl(growl_server, growl_password):
             logging.debug(error)
             del growler
             ret = None
-    except socket.error, err:
+    except socket.error as err:
         error = 'Cannot register with Growl %s' % str(err)
         logging.debug(error)
         del growler
@@ -253,7 +253,7 @@ def send_growl(title, msg, gtype, test=None):
         if _GROWL:
             if 0: assert isinstance(_GROWL, GrowlNotifier) # Assert only for debug purposes
             _GROWL_REG = True
-            if isinstance(msg, unicode):
+            if isinstance(msg, str):
                 msg = msg.decode('utf-8')
             elif not isinstance(msg, str):
                 msg = str(msg)
@@ -271,7 +271,7 @@ def send_growl(title, msg, gtype, test=None):
                 else:
                     logging.debug('Growl error %s', ret)
                     return 'Growl error %s', ret
-            except socket.error, err:
+            except socket.error as err:
                 error = 'Growl error %s' % err
                 logging.debug(error)
                 return error
@@ -393,8 +393,8 @@ def send_prowl(title, msg, gtype, force=False, test=None):
         return T('Cannot send, missing required data')
 
     title = Tx(NOTIFICATION.get(gtype, 'other'))
-    title = urllib2.quote(title.encode('utf8'))
-    msg = urllib2.quote(msg.encode('utf8'))
+    title = urllib.parse.quote(title.encode('utf8'))
+    msg = urllib.parse.quote(msg.encode('utf8'))
     prio = get_prio(gtype, 'prowl')
 
     if force:
@@ -404,7 +404,7 @@ def send_prowl(title, msg, gtype, force=False, test=None):
         url = 'https://api.prowlapp.com/publicapi/add?apikey=%s&application=SABnzbd' \
               '&event=%s&description=%s&priority=%d' % (apikey, title, msg, prio)
         try:
-            urllib2.urlopen(url)
+            urllib.request.urlopen(url)
             return ''
         except:
             logging.warning(T('Failed to send Prowl message'))
@@ -435,8 +435,8 @@ def send_pushover(title, msg, gtype, force=False, test=None):
 
     if prio > -3:
         try:
-            conn = httplib.HTTPSConnection("api.pushover.net:443")
-            conn.request("POST", "/1/messages.json", urllib.urlencode({
+            conn = http.client.HTTPSConnection("api.pushover.net:443")
+            conn.request("POST", "/1/messages.json", urllib.parse.urlencode({
                 "token": apikey,
                 "user": userkey,
                 "device": device,
@@ -467,10 +467,10 @@ def send_pushbullet(title, msg, gtype, force=False, test=None):
     if not apikey:
         return T('Cannot send, missing required data')
 
-    title = u'SABnzbd: ' + Tx(NOTIFICATION.get(gtype, 'other'))
+    title = 'SABnzbd: ' + Tx(NOTIFICATION.get(gtype, 'other'))
 
     try:
-        conn = httplib.HTTPSConnection('api.pushbullet.com:443')
+        conn = http.client.HTTPSConnection('api.pushbullet.com:443')
         conn.request('POST', '/v2/pushes',
             json.dumps({
                 'type': 'note',
@@ -502,7 +502,7 @@ def send_nscript(title, msg, gtype, force=False, test=None):
         parameters = sabnzbd.cfg.nscript_parameters()
     if not script:
         return T('Cannot send, missing required data')
-    title = u'SABnzbd: ' + Tx(NOTIFICATION.get(gtype, 'other'))
+    title = 'SABnzbd: ' + Tx(NOTIFICATION.get(gtype, 'other'))
 
     if force or check_classes(gtype, 'nscript'):
         script_path = make_script_path(script)

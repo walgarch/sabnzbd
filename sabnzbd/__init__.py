@@ -23,7 +23,7 @@ import os
 import logging
 import datetime
 import tempfile
-import cPickle
+import pickle
 import pickle
 import zipfile
 import glob
@@ -177,10 +177,10 @@ __SHUTTING_DOWN__ = False
 ##############################################################################
 def sig_handler(signum=None, frame=None):
     global SABSTOP, WINTRAY
-    if sabnzbd.WIN32 and type(signum) != type(None) and DAEMON and signum == 5:
+    if sabnzbd.WIN32 and not isinstance(signum, type(None)) and DAEMON and signum == 5:
         # Ignore the "logoff" event when running as a Win32 daemon
         return True
-    if type(signum) != type(None):
+    if not isinstance(signum, type(None)):
         logging.warning(T('Signal %s caught, saving and exiting...'), signum)
     try:
         save_state()
@@ -639,7 +639,7 @@ def add_nzbfile(nzbfile, pp=None, script=None, cat=None, priority=NORMAL_PRIORIT
     if cat and cat.lower() == 'default':
         cat = None
 
-    if isinstance(nzbfile, basestring):
+    if isinstance(nzbfile, str):
         # File coming from queue repair
         filename = nzbfile
         keep = True
@@ -670,7 +670,7 @@ def add_nzbfile(nzbfile, pp=None, script=None, cat=None, priority=NORMAL_PRIORIT
 
     logging.info('Adding %s', filename)
 
-    if isinstance(nzbfile, basestring):
+    if isinstance(nzbfile, str):
         path = nzbfile
     else:
         try:
@@ -846,7 +846,7 @@ def keep_awake():
                         # set ES_SYSTEM_REQUIRED
                         KERNEL32.SetThreadExecutionState(ctypes.c_int(0x00000001))
                     else:
-                        sleepless.keep_awake(u'SABnzbd is busy downloading and/or post-processing')
+                        sleepless.keep_awake('SABnzbd is busy downloading and/or post-processing')
             if not awake and sleepless:
                 sleepless.allow_sleep()
 
@@ -870,7 +870,7 @@ def get_new_id(prefix, folder, check_list=None):
     """ Return unique prefixed admin identifier within folder
         optionally making sure that id is not in the check_list.
     """
-    for n in xrange(10000):
+    for n in range(10000):
         try:
             if not os.path.exists(folder):
                 os.makedirs(folder)
@@ -894,12 +894,12 @@ def save_data(data, _id, path, do_pickle=True, silent=False):
     path = os.path.join(path, _id)
 
     # We try 3 times, to avoid any dict or access problems
-    for t in xrange(3):
+    for t in range(3):
         try:
             with open(path, 'wb') as data_file:
                 if do_pickle:
                     if cfg.use_pickle():
-                        cPickle.dump(data, data_file)
+                        pickle.dump(data, data_file)
                     else:
                         pickle.dump(data, data_file)
                 else:
@@ -932,7 +932,7 @@ def load_data(_id, path, remove=True, do_pickle=True, silent=False):
                 if cfg.use_pickle():
                     data = pickle.load(data_file)
                 else:
-                    data = cPickle.load(data_file)
+                    data = pickle.load(data_file)
             else:
                 data = data_file.read()
 
@@ -965,13 +965,13 @@ def save_admin(data, _id):
     logging.info("Saving data for %s in %s", _id, path)
 
     # We try 3 times, to avoid any dict or access problems
-    for t in xrange(3):
+    for t in range(3):
         try:
             with open(path, 'wb') as data_file:
                 if cfg.use_pickle():
                     data = pickle.dump(data, data_file)
                 else:
-                    data = cPickle.dump(data, data_file)
+                    data = pickle.dump(data, data_file)
             break
         except:
             if t == 2:
@@ -997,7 +997,7 @@ def load_admin(_id, remove=False, silent=False):
             if cfg.use_pickle():
                 data = pickle.load(data_file)
             else:
-                data = cPickle.load(data_file)
+                data = pickle.load(data_file)
         if remove:
             os.remove(path)
     except:

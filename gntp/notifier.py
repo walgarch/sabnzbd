@@ -232,7 +232,7 @@ class GrowlNotifier(object):
 		#Less verbose
 		logger.debug('From : %s:%s <%s>', self.hostname, self.port, response.__class__)
 
-		if type(response) == gntp.GNTPOK:
+		if isinstance(response, gntp.GNTPOK):
 			return True
 		if response.error()[0] == '404' and 'disabled' in response.error()[1]:
 			# Ignore message saying that user has disabled this class

@@ -185,7 +185,7 @@ def external_processing(extern_proc, nzo, complete_dir, nicename, status):
             p.stdin.close()
         line = ''
         lines = []
-        while 1:
+        while True:
             line = proc.readline()
             if not line:
                 break
@@ -629,7 +629,7 @@ def rar_extract_core(rarfile_path, numrars, one_folder, nzo, setname, extraction
     inrecovery = False
     lines = []
 
-    while 1:
+    while True:
         line = proc.readline()
         if not line:
             break
@@ -664,7 +664,7 @@ def rar_extract_core(rarfile_path, numrars, one_folder, nzo, setname, extraction
         elif line.startswith('Cannot find volume') and not inrecovery:
             filename = os.path.basename(TRANS(line[19:]))
             nzo.fail_msg = T('Unpacking failed, unable to find %s') % unicoder(filename)
-            msg = (u'[%s] ' + T('Unpacking failed, unable to find %s')) % (setname, filename)
+            msg = ('[%s] ' + T('Unpacking failed, unable to find %s')) % (setname, filename)
             nzo.set_unpack_info('Unpack', unicoder(msg))
             logging.warning(T('ERROR: unable to find "%s"'), filename)
             fail = 1
@@ -672,14 +672,14 @@ def rar_extract_core(rarfile_path, numrars, one_folder, nzo, setname, extraction
         elif line.endswith('- CRC failed'):
             filename = TRANS(line[:-12].strip())
             nzo.fail_msg = T('Unpacking failed, CRC error')
-            msg = (u'[%s] ' + T('ERROR: CRC failed in "%s"')) % (setname, filename)
+            msg = ('[%s] ' + T('ERROR: CRC failed in "%s"')) % (setname, filename)
             nzo.set_unpack_info('Unpack', unicoder(msg))
             logging.warning(T('ERROR: CRC failed in "%s"'), setname)
             fail = 2  # Older unrar versions report a wrong password as a CRC error
 
         elif line.startswith('File too large'):
             nzo.fail_msg = T('Unpacking failed, file too large for filesystem (FAT?)')
-            msg = (u'[%s] ' + T('Unpacking failed, file too large for filesystem (FAT?)')) % setname
+            msg = ('[%s] ' + T('Unpacking failed, file too large for filesystem (FAT?)')) % setname
             nzo.set_unpack_info('Unpack', unicoder(msg))
             # ERROR: File too large for file system (bigfile-5000MB)
             logging.error(T('ERROR: File too large for filesystem (%s)'), setname)
@@ -687,7 +687,7 @@ def rar_extract_core(rarfile_path, numrars, one_folder, nzo, setname, extraction
 
         elif line.startswith('Write error'):
             nzo.fail_msg = T('Unpacking failed, write error or disk is full?')
-            msg = (u'[%s] ' + T('Unpacking failed, write error or disk is full?')) % setname
+            msg = ('[%s] ' + T('Unpacking failed, write error or disk is full?')) % setname
             nzo.set_unpack_info('Unpack', unicoder(msg))
             logging.error(T('ERROR: write error (%s)'), line[11:])
             fail = 1
@@ -702,11 +702,11 @@ def rar_extract_core(rarfile_path, numrars, one_folder, nzo, setname, extraction
             line2 = proc.readline()
             if 'must not exceed 260' in line2:
                 nzo.fail_msg = T('Unpacking failed, path is too long')
-                msg = u'[%s] %s: %s' % (T('Unpacking failed, path is too long'), setname, unicoder(line[13:]))
+                msg = '[%s] %s: %s' % (T('Unpacking failed, path is too long'), setname, unicoder(line[13:]))
                 logging.error(T('ERROR: path too long (%s)'), unicoder(line[13:]))
             else:
                 nzo.fail_msg = T('Unpacking failed, write error or disk is full?')
-                msg = u'[%s] %s: %s' % (T('Unpacking failed, write error or disk is full?'), setname, unicoder(line[13:]))
+                msg = '[%s] %s: %s' % (T('Unpacking failed, write error or disk is full?'), setname, unicoder(line[13:]))
                 logging.error(T('ERROR: write error (%s)'), unicoder(line[13:]))
             nzo.set_unpack_info('Unpack', unicoder(msg))
             fail = 1
@@ -714,7 +714,7 @@ def rar_extract_core(rarfile_path, numrars, one_folder, nzo, setname, extraction
         elif line.startswith('ERROR: '):
             nzo.fail_msg = T('Unpacking failed, see log')
             logging.warning(T('ERROR: %s'), (unicoder(line[7:])))
-            msg = (u'[%s] ' + T('ERROR: %s')) % (setname, line[7:])
+            msg = ('[%s] ' + T('ERROR: %s')) % (setname, line[7:])
             nzo.set_unpack_info('Unpack', unicoder(msg))
             fail = 1
 
@@ -733,7 +733,7 @@ def rar_extract_core(rarfile_path, numrars, one_folder, nzo, setname, extraction
             else:
                 filename = os.path.split(rarfile_path)[1]
             nzo.fail_msg = T('Unpacking failed, archive requires a password')
-            msg = (u'[%s][%s] ' + T('Unpacking failed, archive requires a password')) % (setname, filename)
+            msg = ('[%s][%s] ' + T('Unpacking failed, archive requires a password')) % (setname, filename)
             nzo.set_unpack_info('Unpack', unicoder(msg))
             fail = 2
 
@@ -1272,7 +1272,7 @@ def PAR_Verify(parfile, parfile_nzf, nzo, setname, joinables, classic=False, sin
         verified = 0
 
         # Loop over the output, whee
-        while 1:
+        while True:
             char = proc.read(1)
             if not char:
                 break
@@ -1368,7 +1368,7 @@ def PAR_Verify(parfile, parfile_nzf, nzo, setname, joinables, classic=False, sin
                 else:
                     msg = T('Invalid par2 files, cannot verify or repair')
                     nzo.fail_msg = msg
-                    msg = u'[%s] %s' % (unicoder(setname), msg)
+                    msg = '[%s] %s' % (unicoder(setname), msg)
                     nzo.set_unpack_info('Repair', msg)
                     nzo.status = Status.FAILED
 
@@ -1418,7 +1418,7 @@ def PAR_Verify(parfile, parfile_nzf, nzo, setname, joinables, classic=False, sin
                     # it will try to load all pars anyway
                     msg = T('Repair failed, not enough repair blocks (%s short)') % str(int(needed_blocks - avail_blocks))
                     nzo.fail_msg = msg
-                    msg = u'[%s] %s' % (unicoder(setname), msg)
+                    msg = '[%s] %s' % (unicoder(setname), msg)
                     nzo.set_unpack_info('Repair', msg)
                     nzo.status = Status.FETCHING
                     needed_blocks = avail_blocks
@@ -1453,7 +1453,7 @@ def PAR_Verify(parfile, parfile_nzf, nzo, setname, joinables, classic=False, sin
                 else:
                     msg = T('Repair failed, not enough repair blocks (%s short)') % str(needed_blocks)
                     nzo.fail_msg = msg
-                    msg = u'[%s] %s' % (unicoder(setname), msg)
+                    msg = '[%s] %s' % (unicoder(setname), msg)
                     nzo.set_unpack_info('Repair', msg)
                     nzo.status = Status.FAILED
 
@@ -1512,7 +1512,7 @@ def PAR_Verify(parfile, parfile_nzf, nzo, setname, joinables, classic=False, sin
                 else:
                     msg = unicoder(line.strip())
                     nzo.fail_msg = msg
-                    msg = u'[%s] %s' % (unicoder(setname), msg)
+                    msg = '[%s] %s' % (unicoder(setname), msg)
                     nzo.set_unpack_info('Repair', msg)
                     nzo.status = Status.FAILED
 
@@ -1520,7 +1520,7 @@ def PAR_Verify(parfile, parfile_nzf, nzo, setname, joinables, classic=False, sin
                 # Oops, disk is full!
                 msg = T('Repairing failed, %s') % T('Disk full')
                 nzo.fail_msg = msg
-                msg = u'[%s] %s' % (unicoder(setname), msg)
+                msg = '[%s] %s' % (unicoder(setname), msg)
                 nzo.set_unpack_info('Repair', msg)
                 nzo.status = Status.FAILED
 
@@ -1545,7 +1545,7 @@ def PAR_Verify(parfile, parfile_nzf, nzo, setname, joinables, classic=False, sin
             elif 'No details available for recoverable file' in line:
                 msg = unicoder(line.strip())
                 nzo.fail_msg = msg
-                msg = u'[%s] %s' % (unicoder(setname), msg)
+                msg = '[%s] %s' % (unicoder(setname), msg)
                 nzo.set_unpack_info('Repair', msg)
                 nzo.status = Status.FAILED
 
@@ -1580,7 +1580,7 @@ def PAR_Verify(parfile, parfile_nzf, nzo, setname, joinables, classic=False, sin
                     verifytotal = int(m.group(1))
 
         p.wait()
-    except WindowsError, err:
+    except WindowsError as err:
         if err[0] == '87' and not classic:
             # Hit a bug in par2-tbb, retry with par2-classic
             retry_classic = True
@@ -1667,7 +1667,7 @@ def MultiPar_Verify(parfile, parfile_nzf, nzo, setname, joinables, classic=False
     old_name = None
 
     # Loop over the output, whee
-    while 1:
+    while True:
         char = proc.read(1)
         if not char:
             break
@@ -1734,14 +1734,14 @@ def MultiPar_Verify(parfile, parfile_nzf, nzo, setname, joinables, classic=False
             else:
                 msg = T('Invalid par2 files, cannot verify or repair')
                 nzo.fail_msg = msg
-                msg = u'[%s] %s' % (unicoder(setname), msg)
+                msg = '[%s] %s' % (unicoder(setname), msg)
                 nzo.set_unpack_info('Repair', msg)
                 nzo.status = Status.FAILED
 
         elif line.startswith('There is not enough space on the disk'):
             msg = T('Repairing failed, %s') % T('Disk full')
             nzo.fail_msg = msg
-            msg = u'[%s] %s' % (unicoder(setname), msg)
+            msg = '[%s] %s' % (unicoder(setname), msg)
             nzo.set_unpack_info('Repair', msg)
             nzo.status = Status.FAILED
 
@@ -1877,7 +1877,7 @@ def MultiPar_Verify(parfile, parfile_nzf, nzo, setname, joinables, classic=False
                 # it will try to load all pars anyway
                 msg = T('Repair failed, not enough repair blocks (%s short)') % str(int(needed_blocks - avail_blocks))
                 nzo.fail_msg = msg
-                msg = u'[%s] %s' % (unicoder(setname), msg)
+                msg = '[%s] %s' % (unicoder(setname), msg)
                 nzo.set_unpack_info('Repair', msg)
                 nzo.status = Status.FETCHING
                 needed_blocks = avail_blocks
@@ -1910,7 +1910,7 @@ def MultiPar_Verify(parfile, parfile_nzf, nzo, setname, joinables, classic=False
             else:
                 msg = T('Repair failed, not enough repair blocks (%s short)') % str(needed_blocks)
                 nzo.fail_msg = msg
-                msg = u'[%s] %s' % (unicoder(setname), msg)
+                msg = '[%s] %s' % (unicoder(setname), msg)
                 nzo.set_unpack_info('Repair', msg)
                 nzo.status = Status.FAILED
 
@@ -1970,7 +1970,7 @@ def MultiPar_Verify(parfile, parfile_nzf, nzo, setname, joinables, classic=False
 
         # If succes, we also remove the possibly previously renamed ones
         if finished and previous:
-            reconstructed.extend(previous.values())
+            reconstructed.extend(list(previous.values()))
 
         # Remove renamed original files
         workdir = os.path.split(parfile)[0]
@@ -2034,8 +2034,8 @@ def userxbit(filename):
 
 def build_command(command):
     """ Prepare list from running an external program """
-    for n in xrange(len(command)):
-        if isinstance(command[n], unicode):
+    for n in range(len(command)):
+        if isinstance(command[n], str):
             command[n] = deunicode(command[n])
 
     if not sabnzbd.WIN32:
@@ -2340,7 +2340,7 @@ def crc_check(path, target_crc):
     except:
         return False
     crc = binascii.crc32('')
-    while 1:
+    while True:
         data = fp.read(4096)
         if not data:
             break
@@ -2428,9 +2428,9 @@ def get_from_url(url):
     """ Retrieve URL and return content
         `timeout` sets non-standard timeout
     """
-    import urllib2
+    import urllib.request, urllib.error, urllib.parse
     try:
-        return urllib2.urlopen(url).read()
+        return urllib.request.urlopen(url).read()
     except:
         return None
 

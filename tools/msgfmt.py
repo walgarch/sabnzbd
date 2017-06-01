@@ -44,9 +44,9 @@ RE_HTML = re.compile('<[^>]+>')
 
 
 def usage(code, msg=''):
-    print >> sys.stderr, __doc__
+    print(__doc__, file=sys.stderr)
     if msg:
-        print >> sys.stderr, msg
+        print(msg, file=sys.stderr)
     sys.exit(code)
 
 
@@ -60,17 +60,16 @@ def add(id, str, fuzzy):
             else:
                 MESSAGES[id] = str
         else:
-            print 'WARNING: %s mismatch, skipping!'
-            print '    %s' % id
-            print '    %s' % str
+            print('WARNING: %s mismatch, skipping!')
+            print('    %s' % id)
+            print('    %s' % str)
 
 
 def generate():
     """ Return the generated output. """
     global MESSAGES
-    keys = MESSAGES.keys()
+    keys = sorted(list(MESSAGES.keys()))
     # the keys are sorted in the .mo file
-    keys.sort()
     offsets = []
     ids = strs = ''
     for id in keys:
@@ -95,7 +94,7 @@ def generate():
         voffsets += [l2, o2 + valuestart]
     offsets = koffsets + voffsets
     output = struct.pack("Iiiiiii",
-                         0x950412deL,       # Magic
+                         0x950412de,       # Magic
                          0,                 # Version
                          len(keys),         # # of entries
                          7 * 4,               # start of key index
@@ -121,8 +120,8 @@ def make(filename, outfile):
 
     try:
         lines = open(infile).readlines()
-    except IOError, msg:
-        print >> sys.stderr, msg
+    except IOError as msg:
+        print(msg, file=sys.stderr)
         sys.exit(1)
 
     section = None
@@ -165,9 +164,9 @@ def make(filename, outfile):
         elif section == STR:
             msgstr += l
         else:
-            print >> sys.stderr, 'Syntax error on %s:%d' % (infile, lno), \
-                'before:'
-            print >> sys.stderr, l
+            print('Syntax error on %s:%d' % (infile, lno), \
+                'before:', file=sys.stderr)
+            print(l, file=sys.stderr)
             sys.exit(1)
     # Add last entry
     if section == STR:
@@ -178,8 +177,8 @@ def make(filename, outfile):
 
     try:
         open(outfile, "wb").write(output)
-    except IOError, msg:
-        print >> sys.stderr, msg
+    except IOError as msg:
+        print(msg, file=sys.stderr)
 
 
 def main():
@@ -187,7 +186,7 @@ def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'nhVo:',
                                    ['help', 'version', 'output-file='])
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(1, msg)
 
     outfile = None
@@ -196,7 +195,7 @@ def main():
         if opt in ('-h', '--help'):
             usage(0)
         elif opt in ('-V', '--version'):
-            print >> sys.stderr, "msgfmt.py", __version__
+            print("msgfmt.py", __version__, file=sys.stderr)
             sys.exit(0)
         elif opt in ('-o', '--output-file'):
             outfile = arg
@@ -204,8 +203,8 @@ def main():
             nonewlines = True
     # do it
     if not args:
-        print >> sys.stderr, 'No input file given'
-        print >> sys.stderr, "Try `msgfmt --help' for more information."
+        print('No input file given', file=sys.stderr)
+        print("Try `msgfmt --help' for more information.", file=sys.stderr)
         return
 
     for filename in args:

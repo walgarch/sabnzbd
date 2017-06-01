@@ -56,7 +56,7 @@ def ssl_method(method):
 
 def ssl_protocols():
     ''' Return acronyms for SSL protocols '''
-    return _SSL_PROTOCOLS.keys()
+    return list(_SSL_PROTOCOLS.keys())
 
 
 def ssl_protocols_labels():
@@ -73,5 +73,5 @@ def ssl_version():
 
 
 if __name__ == '__main__':
-    print 'SSL version: %s' % ssl_version()
-    print 'Supported protocols: %s' % ssl_protocols()
+    print('SSL version: %s' % ssl_version())
+    print('Supported protocols: %s' % ssl_protocols())

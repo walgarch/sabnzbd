@@ -19,7 +19,7 @@
 sabnzbd.decoder - article decoder
 """
 
-import Queue
+import queue
 import binascii
 import logging
 import re
@@ -84,7 +84,7 @@ class Decoder(Thread):
         self.queue.put(None)
 
     def run(self):
-        while 1:
+        while True:
             # Sleep to allow decoder/assembler switching
             sleep(0.0001)
             art_tup = self.queue.get()
@@ -119,7 +119,7 @@ class Decoder(Thread):
                     nzf.article_count += 1
                     found = True
 
-                except IOError, e:
+                except IOError as e:
                     logme = T('Decoding %s failed') % art_id
                     logging.warning(logme)
                     logging.info("Traceback: ", exc_info=True)
@@ -129,7 +129,7 @@ class Decoder(Thread):
                     sabnzbd.nzbqueue.NzbQueue.do.reset_try_lists(nzf, nzo)
                     register = False
 
-                except MemoryError, e:
+                except MemoryError as e:
                     logme = T('Decoder failure: Out of memory')
                     logging.warning(logme)
                     anfo = sabnzbd.articlecache.ArticleCache.do.cache_info()
@@ -141,7 +141,7 @@ class Decoder(Thread):
                     sabnzbd.nzbqueue.NzbQueue.do.reset_try_lists(nzf, nzo)
                     register = False
 
-                except CrcError, e:
+                except CrcError as e:
                     logme = T('CRC Error in %s (%s -> %s)') % (art_id, e.needcrc, e.gotcrc)
                     logging.info(logme)
 
@@ -229,7 +229,7 @@ class Decoder(Thread):
         return False
 
 
-YDEC_TRANS = ''.join([chr((i + 256 - 42) % 256) for i in xrange(256)])
+YDEC_TRANS = ''.join([chr((i + 256 - 42) % 256) for i in range(256)])
 def decode(article, data, raw_data):
     # Do we have SABYenc? Let it do all the work
     if sabnzbd.decoder.SABYENC_ENABLED:
@@ -250,7 +250,7 @@ def decode(article, data, raw_data):
 
     # Continue for _yenc or Python-yEnc
     # Filter out empty ones
-    data = filter(None, data)
+    data = [_f for _f in data if _f]
     # No point in continuing if we don't have any data left
     if data:
         nzf = article.nzf
@@ -262,7 +262,7 @@ def decode(article, data, raw_data):
         if not ybegin:
             found = False
             try:
-                for i in xrange(min(40, len(data))):
+                for i in range(min(40, len(data))):
                     if data[i].startswith('begin '):
                         nzf.type = 'uu'
                         found = True
@@ -290,7 +290,7 @@ def decode(article, data, raw_data):
             # Decode data
             if HAVE_YENC:
                 decoded_data, crc = _yenc.decode_string(''.join(data))[:2]
-                partcrc = '%08X' % ((crc ^ -1) & 2 ** 32L - 1)
+                partcrc = '%08X' % ((crc ^ -1) & 2 ** 32 - 1)
             else:
                 data = ''.join(data)
                 for i in (0, 9, 10, 13, 27, 32, 46, 61):
@@ -298,7 +298,7 @@ def decode(article, data, raw_data):
                     data = data.replace(j, chr(i))
                 decoded_data = data.translate(YDEC_TRANS)
                 crc = binascii.crc32(decoded_data)
-                partcrc = '%08X' % (crc & 2 ** 32L - 1)
+                partcrc = '%08X' % (crc & 2 ** 32 - 1)
 
             if ypart:
                 crcname = 'pcrc32'
@@ -325,7 +325,7 @@ def yCheck(data):
     yend = None
 
     # Check head
-    for i in xrange(min(40, len(data))):
+    for i in range(min(40, len(data))):
         try:
             if data[i].startswith('=ybegin '):
                 splits = 3
@@ -347,7 +347,7 @@ def yCheck(data):
             break
 
     # Check tail
-    for i in xrange(-1, -11, -1):
+    for i in range(-1, -11, -1):
         try:
             if data[i].startswith('=yend '):
                 yend = ySplit(data[i])

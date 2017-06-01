@@ -22,7 +22,7 @@ sabnzbd.misc - misc classes
 import os
 import sys
 import logging
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import re
 import shutil
 import threading
@@ -32,7 +32,7 @@ import time
 import datetime
 import fnmatch
 import stat
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 import sabnzbd
 from sabnzbd.decorators import synchronized
@@ -100,7 +100,7 @@ def safe_lower(txt):
         return ''
 
 
-def globber(path, pattern=u'*'):
+def globber(path, pattern='*'):
     """ Return matching base file/folder names in folder `path` """
     # Cannot use glob.glob() because it doesn't support Windows long name notation
     if os.path.exists(path):
@@ -109,7 +109,7 @@ def globber(path, pattern=u'*'):
         return []
 
 
-def globber_full(path, pattern=u'*'):
+def globber_full(path, pattern='*'):
     """ Return matching full file/folder names in folder `path` """
     # Cannot use glob.glob() because it doesn't support Windows long name notation
     if os.path.exists(path):
@@ -308,7 +308,7 @@ def sanitize_foldername(name, limit=True):
     uFL_ILLEGAL = FL_ILLEGAL.decode('cp1252')
     uFL_LEGAL = FL_LEGAL.decode('cp1252')
 
-    if isinstance(name, unicode):
+    if isinstance(name, str):
         illegal = uFL_ILLEGAL
         legal = uFL_LEGAL
     else:
@@ -353,11 +353,11 @@ def sanitize_and_trim_path(path):
     path = path.strip()
     new_path = ''
     if sabnzbd.WIN32:
-        if path.startswith(u'\\\\?\\UNC\\'):
-            new_path = u'\\\\?\\UNC\\'
+        if path.startswith('\\\\?\\UNC\\'):
+            new_path = '\\\\?\\UNC\\'
             path = path[8:]
-        elif path.startswith(u'\\\\?\\'):
-            new_path = u'\\\\?\\'
+        elif path.startswith('\\\\?\\'):
+            new_path = '\\\\?\\'
             path = path[4:]
 
     path = path.replace('\\', '/')
@@ -438,7 +438,7 @@ def create_all_dirs(path, umask=False):
                         mask = cfg.umask()
                         if mask:
                             try:
-                                os.chmod(path, int(mask, 8) | 0700)
+                                os.chmod(path, int(mask, 8) | 0o700)
                             except:
                                 pass
     return result
@@ -526,7 +526,7 @@ def windows_variant():
     """
     from win32api import GetVersionEx
     from win32con import VER_PLATFORM_WIN32_NT
-    import _winreg
+    import winreg
 
     vista_plus = x64 = False
     maj, _minor, _buildno, plat, _csd = GetVersionEx()
@@ -538,14 +538,14 @@ def windows_variant():
             # This does *not* work:
             #     return os.environ['PROCESSOR_ARCHITECTURE'] == 'AMD64'
             # because the Python runtime returns 'X86' even on an x64 system!
-            key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
                     r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment")
-            for n in xrange(_winreg.QueryInfoKey(key)[1]):
-                name, value, _val_type = _winreg.EnumValue(key, n)
+            for n in range(winreg.QueryInfoKey(key)[1]):
+                name, value, _val_type = winreg.EnumValue(key, n)
                 if name == 'PROCESSOR_ARCHITECTURE':
-                    x64 = value.upper() == u'AMD64'
+                    x64 = value.upper() == 'AMD64'
                     break
-            _winreg.CloseKey(key)
+            winreg.CloseKey(key)
 
     return vista_plus, x64
 
@@ -556,35 +556,35 @@ _SERVICE_PARM = 'CommandLine'
 
 def get_serv_parms(service):
     """ Get the service command line parameters from Registry """
-    import _winreg
+    import winreg
 
     value = []
     try:
-        key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, _SERVICE_KEY + service)
-        for n in xrange(_winreg.QueryInfoKey(key)[1]):
-            name, value, _val_type = _winreg.EnumValue(key, n)
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, _SERVICE_KEY + service)
+        for n in range(winreg.QueryInfoKey(key)[1]):
+            name, value, _val_type = winreg.EnumValue(key, n)
             if name == _SERVICE_PARM:
                 break
-        _winreg.CloseKey(key)
+        winreg.CloseKey(key)
     except WindowsError:
         pass
-    for n in xrange(len(value)):
+    for n in range(len(value)):
         value[n] = value[n]
     return value
 
 
 def set_serv_parms(service, args):
     """ Set the service command line parameters in Registry """
-    import _winreg
+    import winreg
 
     uargs = []
     for arg in args:
         uargs.append(unicoder(arg))
 
     try:
-        key = _winreg.CreateKey(_winreg.HKEY_LOCAL_MACHINE, _SERVICE_KEY + service)
-        _winreg.SetValueEx(key, _SERVICE_PARM, None, _winreg.REG_MULTI_SZ, uargs)
-        _winreg.CloseKey(key)
+        key = winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, _SERVICE_KEY + service)
+        winreg.SetValueEx(key, _SERVICE_PARM, None, winreg.REG_MULTI_SZ, uargs)
+        winreg.CloseKey(key)
     except WindowsError:
         return False
     return True
@@ -645,7 +645,7 @@ def check_latest_version():
     # to bad file content.
 
     try:
-        fn = urllib.urlretrieve('https://raw.githubusercontent.com/sabnzbd/sabnzbd.github.io/master/latest.txt')[0]
+        fn = urllib.request.urlretrieve('https://raw.githubusercontent.com/sabnzbd/sabnzbd.github.io/master/latest.txt')[0]
         f = open(fn, 'r')
         data = f.read()
         f.close()
@@ -815,7 +815,7 @@ def check_mount(path):
         m = re.search(r'^(/(?:mnt|media)/[^/]+)/', path)
 
     if m:
-        for n in xrange(cfg.wait_ext_drive() or 1):
+        for n in range(cfg.wait_ext_drive() or 1):
             if os.path.exists(m.group(1)):
                 return True
             logging.debug('Waiting for %s to come online', m.group(1))
@@ -941,7 +941,7 @@ def move_to_path(path, new_path):
 def cleanup_empty_directories(path):
     """ Remove all empty folders inside (and including) 'path' """
     path = os.path.normpath(path)
-    while 1:
+    while True:
         repeat = False
         for root, dirs, files in os.walk(path, topdown=False):
             if not dirs and not files and root != path:
@@ -970,7 +970,7 @@ def get_filepath(path, nzo, filename):
 
     dName = dirname
     if not created:
-        for n in xrange(200):
+        for n in range(200):
             dName = dirname
             if n:
                 dName += '.' + str(n)
@@ -1183,11 +1183,11 @@ else:
             try:
                 s = os.statvfs(_dir)
                 if s.f_blocks < 0:
-                    disk_size = float(sys.maxint) * float(s.f_frsize)
+                    disk_size = float(sys.maxsize) * float(s.f_frsize)
                 else:
                     disk_size = float(s.f_blocks) * float(s.f_frsize)
                 if s.f_bavail < 0:
-                    available = float(sys.maxint) * float(s.f_frsize)
+                    available = float(sys.maxsize) * float(s.f_frsize)
                 else:
                     available = float(s.f_bavail) * float(s.f_frsize)
                 return disk_size / GIGI, available / GIGI
@@ -1231,7 +1231,7 @@ def create_https_certificates(ssl_cert, ssl_key):
     try:
         from sabnzbd.utils.certgen import generate_key, generate_local_cert
         private_key = generate_key(key_size=2048, output_file=ssl_key)
-        cert = generate_local_cert(private_key, days_valid=3560, output_file=ssl_cert, LN=u'SABnzbd', ON=u'SABnzbd', CN=u'localhost')
+        cert = generate_local_cert(private_key, days_valid=3560, output_file=ssl_cert, LN='SABnzbd', ON='SABnzbd', CN='localhost')
         logging.info('Self-signed certificates generated successfully')
     except:
         logging.error(T('Error creating SSL key and certificate'))
@@ -1291,7 +1291,7 @@ def find_on_path(targets):
     else:
         paths = os.getenv('PATH').split(':')
 
-    if isinstance(targets, basestring):
+    if isinstance(targets, str):
         targets = (targets, )
 
     for path in paths:
@@ -1365,7 +1365,7 @@ def renamer(old, new):
             try:
                 shutil.move(old, new)
                 return
-            except WindowsError, err:
+            except WindowsError as err:
                 logging.debug('Error renaming "%s" to "%s" <%s>', old, new, err)
                 if err[0] == 32:
                     logging.debug('Retry rename %s to %s', old, new)
@@ -1386,7 +1386,7 @@ def remove_dir(path):
             try:
                 os.rmdir(path)
                 return
-            except WindowsError, err:
+            except WindowsError as err:
                 if err[0] == 32:
                     logging.debug('Retry delete %s', path)
                     retries -= 1
@@ -1508,19 +1508,19 @@ def set_permissions(path, recursive=True):
 def clip_path(path):
     r""" Remove \\?\ or \\?\UNC\ prefix from Windows path """
     if sabnzbd.WIN32 and path and '?' in path:
-        path = path.replace(u'\\\\?\\UNC\\', u'\\\\', 1).replace(u'\\\\?\\', u'', 1)
+        path = path.replace('\\\\?\\UNC\\', '\\\\', 1).replace('\\\\?\\', '', 1)
     return path
 
 
 def long_path(path):
     """ For Windows, convert to long style path; others, return same path """
-    if sabnzbd.WIN32 and path and not path.startswith(u'\\\\?\\'):
+    if sabnzbd.WIN32 and path and not path.startswith('\\\\?\\'):
         if path.startswith('\\\\'):
             # Special form for UNC paths
-            path = path.replace(u'\\\\', u'\\\\?\\UNC\\', 1)
+            path = path.replace('\\\\', '\\\\?\\UNC\\', 1)
         else:
             # Normal form for local paths
-            path = u'\\\\?\\' + path
+            path = '\\\\?\\' + path
     return path
 
 

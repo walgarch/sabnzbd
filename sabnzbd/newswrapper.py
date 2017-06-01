@@ -133,7 +133,7 @@ def con(sock, host, port, sslenabled, write_fds, nntp):
     except (ssl.SSLError, CertificateError) as e:
         nntp.error(e)
 
-    except socket.error, e:
+    except socket.error as e:
         try:
             # socket.error can either return a string or a tuple
             if isinstance(e, tuple):
@@ -232,7 +232,7 @@ class NNTP(object):
         except (ssl.SSLError, CertificateError) as e:
             self.error(e)
 
-        except socket.error, e:
+        except socket.error as e:
             try:
                 # socket.error can either return a string or a tuple
                 if isinstance(e, tuple):
@@ -252,7 +252,7 @@ class NNTP(object):
             error = T('This server does not allow SSL on this port')
 
         # Catch certificate errors
-        if type(error) == CertificateError or 'CERTIFICATE_VERIFY_FAILED' in str(error):
+        if isinstance(error, CertificateError) or 'CERTIFICATE_VERIFY_FAILED' in str(error):
             error = T('Server %s uses an untrusted certificate [%s]') % (self.nw.server.host, str(error))
             error += ' - https://sabnzbd.org/certificate-errors'
             # Prevent throwing a lot of errors or when testing server
@@ -390,7 +390,7 @@ class NewsWrapper(object):
     def recv_chunk(self, block=False):
         """ Receive data, return #bytes, done, skip """
         self.timeout = time.time() + self.server.timeout
-        while 1:
+        while True:
             try:
                 if self.nntp.nw.server.ssl:
                     # SSL chunks come in 16K frames
@@ -443,7 +443,7 @@ class NewsWrapper(object):
             self.last_line = new_lines.pop()
 
             # Already remove the starting dots
-            for i in xrange(len(new_lines)):
+            for i in range(len(new_lines)):
                 if new_lines[i][:2] == '..':
                     new_lines[i] = new_lines[i][1:]
             self.lines.extend(new_lines)

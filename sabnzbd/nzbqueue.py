@@ -482,7 +482,7 @@ class NzbQueue:
         if search:
             search = search.lower()
         removed = []
-        for nzo_id in self.__nzo_table.keys():
+        for nzo_id in list(self.__nzo_table.keys()):
             if (not search) or search in self.__nzo_table[nzo_id].final_name_pw_clean.lower():
                 nzo = self.__nzo_table.pop(nzo_id)
                 nzo.deleted = True
@@ -590,7 +590,7 @@ class NzbQueue:
             nzo1.priority = nzo2_priority
         item_id_pos1 = -1
         item_id_pos2 = -1
-        for i in xrange(len(self.__nzo_list)):
+        for i in range(len(self.__nzo_list)):
             if item_id_1 == self.__nzo_list[i].nzo_id:
                 item_id_pos1 = i
             elif item_id_2 == self.__nzo_list[i].nzo_id:
@@ -605,7 +605,7 @@ class NzbQueue:
 
     @synchronized(NZBQUEUE_LOCK)
     def get_position(self, nzb_id):
-        for i in xrange(len(self.__nzo_list)):
+        for i in range(len(self.__nzo_list)):
             if nzb_id == self.__nzo_list[i].nzo_id:
                 return i
         return -1
@@ -649,7 +649,7 @@ class NzbQueue:
 
     @synchronized(NZBQUEUE_LOCK)
     def sort_queue(self, field, reverse=None):
-        if isinstance(reverse, basestring):
+        if isinstance(reverse, str):
             if reverse.lower() == 'desc':
                 reverse = True
             else:
@@ -679,7 +679,7 @@ class NzbQueue:
                 return
 
             # Get the current position in the queue
-            for i in xrange(len(self.__nzo_list)):
+            for i in range(len(self.__nzo_list)):
                 if nzo_id == self.__nzo_list[i].nzo_id:
                     nzo_id_pos1 = i
                     break

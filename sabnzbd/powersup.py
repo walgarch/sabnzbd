@@ -148,7 +148,7 @@ def _get_systemproxy(method):
     try:
         bus = dbus.SystemBus()
         return bus.get_object(name, path), interface, pinterface
-    except dbus.exceptions.DBusException, msg:
+    except dbus.exceptions.DBusException as msg:
         logging.info('DBus not reachable (%s)', msg)
         return None, None, None
 
@@ -168,7 +168,7 @@ def linux_shutdown():
             if proxy.CanStop(dbus_interface=interface):
                 try:
                     proxy.Stop(dbus_interface=interface)
-                except dbus.exceptions.DBusException, msg:
+                except dbus.exceptions.DBusException as msg:
                     logging.info('Received a DBus exception %s', msg)
         else:
             logging.info('DBus does not support Stop (shutdown)')
@@ -192,7 +192,7 @@ def linux_hibernate():
             if proxy.Get(interface, 'can-hibernate', dbus_interface=pinterface):
                 try:
                     proxy.Hibernate(dbus_interface=interface)
-                except dbus.exceptions.DBusException, msg:
+                except dbus.exceptions.DBusException as msg:
                     logging.info('Received a DBus exception %s', msg)
         else:
             logging.info('DBus does not support Hibernate')
@@ -216,7 +216,7 @@ def linux_standby():
             if proxy.Get(interface, 'can-suspend', dbus_interface=pinterface):
                 try:
                     proxy.Suspend(dbus_interface=interface)
-                except dbus.exceptions.DBusException, msg:
+                except dbus.exceptions.DBusException as msg:
                     logging.info('Received a DBus exception %s', msg)
         else:
             logging.info('DBus does not support Suspend (standby)')
