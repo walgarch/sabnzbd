@@ -35,12 +35,7 @@ from sabnzbd.postproc import prepare_extraction_path
 from sabnzbd.utils.rarfile import RarFile
 from sabnzbd.utils.diskspeed import diskspeedmeasure
 
-if sabnzbd.WIN32:
-    # Load the POpen from the fixed unicode-subprocess
-    from sabnzbd.utils.subprocess_fix import Popen
-else:
-    # Load the regular POpen
-    from subprocess import Popen
+from subprocess import Popen
 
 MAX_ACTIVE_UNPACKERS = 10
 ACTIVE_UNPACKERS = []

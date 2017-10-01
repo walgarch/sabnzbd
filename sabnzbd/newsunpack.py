@@ -45,8 +45,7 @@ if sabnzbd.WIN32:
         from win32process import STARTF_USESHOWWINDOW, IDLE_PRIORITY_CLASS
     except ImportError:
         pass
-    # Load the POpen from the fixed unicode-subprocess
-    from sabnzbd.utils.subprocess_fix import Popen
+
 else:
     # Define dummy WindowsError for non-Windows
     class WindowsError(Exception):
@@ -55,8 +54,8 @@ else:
 
         def __str__(self):
             return repr(self.parameter)
-    # Load the regular POpen
-    from subprocess import Popen
+# Load the regular POpen
+from subprocess import Popen
 
 # Regex globals
 RAR_RE = re.compile(r'\.(?P<ext>part\d*\.rar|rar|r\d\d|s\d\d|t\d\d|u\d\d|v\d\d|\d\d\d)$', re.I)
@@ -627,10 +626,6 @@ def rar_extract_core(rarfile_path, numrars, one_folder, nzo, setname, extraction
             # Need long-path notation in case of forbidden-names
             command = ['%s' % RAR_COMMAND, action, '-idp', overwrite, rename, '-ai', password_command,
                        '%s' % clip_path(rarfile_path), '%s\\' % extraction_path]
-
-        # The subprocess_fix requires time to clear the buffers to work,
-        # otherwise the inputs get send incorrectly and unrar breaks
-        time.sleep(0.5)
 
     elif RAR_PROBLEM:
         # Use only oldest options (specifically no "-or")
